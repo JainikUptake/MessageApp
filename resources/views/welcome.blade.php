@@ -16,27 +16,27 @@
             .chat-row {
                 margin: 50px;
             }
-
-
              ul {
                  margin: 0;
                  padding: 0;
                  list-style: none;
              }
 
-
              ul li {
                  padding:8px;
-                 background: #928787;
                  margin-bottom:20px;
              }
+             .sender {
+                background-color: #DCF8C6;
+                margin-left: auto;
+                text-align: right;
+            }
 
-
-             /* ul li:nth-child(2n-2) {
-                background: #c3c5c5;
-             } */
-
-
+            .receiver {
+                background-color: #e26464;
+                margin-right: auto;
+                text-align: left;
+            }
              .chat-input {
                  border: 1px soild lightgray;
                  border-top-right-radius: 10px;
@@ -51,8 +51,8 @@
         {{-- <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}"> --}}
         <div class=" alert alert-success alert-dismissible fade show row" role="alert">
             <div class="col-3">
-                    <img src={{ asset('image/'.auth()->user()->images) }} style="width: 70px;
-                    height: 70px;
+                    <img src={{ asset('image/'.auth()->user()->images) }} style="width: 40px;
+                    height: 40px;
                     border-radius: 100%;" alt="bg" />
             </div>
             <div class="col-3">
@@ -100,15 +100,18 @@
     
             const chatInput = $('#chatInput');
             const chatMessages = $('#chatMessages');
+    
             function loadChatHistory() {
                 chatMessages.empty(); 
                 $.get(`/get-chat-history?user_id=${userId}&receiver_id=${receiverId}`, function (messages) {
                     messages.forEach(function (message) {
-                        chatMessages.append(`<li>${message.message}</li>`);
+                        const messageClass = message.user_id === userId ? 'sender' : 'receiver';
+                        chatMessages.append(`<li class="${messageClass}">${message.message}</li>`);
                     });
                 });
             }
-
+            
+           
             chatInput.keypress(function(e) {
                 let message = $(this).text();
                 if (e.which === 13 && !e.shiftKey) {
@@ -134,8 +137,10 @@
             loadChatHistory();
             socket.on('sendChatToClient', (message) => {
                 console.log(message);
-                chatMessages.append(`<li>${message}</li>`);
+                const messageClass = message.user_id === userId ? 'sender' : 'receiver';
+                chatMessages.append(`<li class="${messageClass}">${message}</li>`);
             });
+            
         });
     </script>
     
