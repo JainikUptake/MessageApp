@@ -10,10 +10,17 @@ class ChatController extends Controller
 
     public function getChatHistory(Request $request)
     {
-        $userId = auth()->user()->id; // Get the authenticated user's ID
+        $userId = $request->input('user_id');
+        $receiverId = $request->input('receiver_id');
 
-        $chatHistory = ChatMessage::where('user_id', $userId)
-            ->orWhere('receiver_id', $userId) // Add this line to get messages where the user is the sender or receiver
+        $chatHistory = ChatMessage::where(function ($query) use ($userId, $receiverId) {
+            $query->where('user_id', $userId)
+                ->where('receiver_id', $receiverId);
+        })
+            ->orWhere(function ($query) use ($userId, $receiverId) {
+                $query->where('user_id', $receiverId)
+                    ->where('receiver_id', $userId);
+            })
             ->orderBy('created_at')
             ->get();
 

@@ -84,69 +84,7 @@
             </div>
         <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
         <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
-<!-- Include necessary scripts -->
 
-    {{-- <script>
-       
-
-        $(function() {
-            const userId = {{ auth()->user()->id }};
-            // var receiverId = $('#receiver_id').val();
-            let receiverId;
-            $('#receiver_id').on('change', function () {
-                var receiverIds = this.value;
-                receiverId = receiverIds
-                console.log(receiverId);
-            });
-            const socket = io('http://127.0.0.1:3000'); // Replace with your server address
-        
-            // Join user's room on connection
-            socket.emit('joinChat', userId);
-        
-            const chatInput = $('#chatInput');
-            const chatMessages = $('#chatMessages');
-
-
-
-            // Send message to server when Enter key is pressed
-            chatInput.keypress(function(e) {
-                let message = $(this).text();
-                if (e.which === 13 && !e.shiftKey) {
-                    let csrfToken = $('meta[name="csrf-token"]').attr('content');
-                    // Send the message to the server using POST with the CSRF token
-                    $.ajax({
-                        url: '/save-chat-message',
-                        method: 'POST',
-                        data: {
-                            _token: csrfToken,
-                            user_id: userId,
-                            message: message,
-                            receiver_id:receiverId,
-                        },
-                        success: function(response) {
-                            // After saving, clear the input field
-                            chatInput.text('');
-                        }
-                    });
-                    return false;
-                }
-            });
-
-            $.get(`/get-chat-history`, function (messages) {
-            messages.forEach(function (message) {
-                chatMessages.append(`<li>${message.message}</li>`);
-            });
-        });
-
-        // Receive and display message from server
-        socket.on('sendChatToClient', (message) => {
-            console.log(message);
-            chatMessages.append(`<li>${message.message}</li>`);
-        });
-
-
-        });
-    </script> --}}
     <script>
         $(function() {
             const userId = {{ auth()->user()->id }};
@@ -154,14 +92,23 @@
     
             $('#receiver_id').on('change', function () {
                 receiverId = this.value;
+                loadChatHistory();
             });
     
-            const socket = io('http://127.0.0.1:3000'); // Replace with your server address
+            const socket = io('http://127.0.0.1:3000'); 
             socket.emit('joinChat', userId);
     
             const chatInput = $('#chatInput');
             const chatMessages = $('#chatMessages');
-    
+            function loadChatHistory() {
+                chatMessages.empty(); 
+                $.get(`/get-chat-history?user_id=${userId}&receiver_id=${receiverId}`, function (messages) {
+                    messages.forEach(function (message) {
+                        chatMessages.append(`<li>${message.message}</li>`);
+                    });
+                });
+            }
+
             chatInput.keypress(function(e) {
                 let message = $(this).text();
                 if (e.which === 13 && !e.shiftKey) {
@@ -178,23 +125,17 @@
                         },
                         success: function(response) {
                             chatInput.text('');
+                            loadChatHistory();
                         }
                     });
                     return false;
                 }
             });
-            
-            // Listen for incoming messages from the socket
+            loadChatHistory();
             socket.on('sendChatToClient', (message) => {
                 console.log(message);
                 chatMessages.append(`<li>${message}</li>`);
             });
-            // $.get(`/get-chat-history`, function (messages) {
-            //     messages.forEach(function (message) {
-            //         chatMessages.append(`<li>${message.message}</li>`);
-            //     });
-            // });
-    
         });
     </script>
     
